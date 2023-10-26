@@ -1,0 +1,15 @@
+{
+  "name": "ghostwriter-ai",
+  "version": "1.0.0",
+  "description": "An experimental attempt to write books using the OpenAI GPT LLM model.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["openai", "gpt", "book", "generation"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
