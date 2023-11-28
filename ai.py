@@ -64,26 +64,34 @@ def callOpenAI(prompt, history, waitingShortAnwser=False, forceMaximum=False, ap
     history.append({"role": "user", "content": f'{prompt}\nLimit the output to {max_tokens} tokens.{maxtokensstr}'})
     _check_num_tokens(history, max_tokens)
 
-    try:
-        response = openai.ChatCompletion.create(
-            engine=config.OPENAI_ENGINE,
-            model=config.OPENAI_MODEL,
-            temperature=config.TEMPERATURE,
-            max_tokens=max_tokens,
-            frequency_penalty=0.0,
-            messages=history,
-        )
-        if response['choices'][0]['finish_reason'] == 'length':
-            raise Exception("Number of tokens still exceeds limit")
+    retry_count = 0
+    max_retries = 5
+    while retry_count < max_retries:
+        try:
+            response = openai.ChatCompletion.create(
+                engine=config.OPENAI_ENGINE,
+                model=config.OPENAI_MODEL,
+                temperature=config.TEMPERATURE,
+                max_tokens=max_tokens,
+                frequency_penalty=0.0,
+                messages=history,
+            )
+            if response['choices'][0]['finish_reason'] == 'length':
+                raise Exception("Number of tokens still exceeds limit")
 
-        content = response['choices'][0]['message']['content']
-    except openai.error.RateLimitError as e:
-        retry_after = get_retry_after(e)+5
-        logging.info(f">> Rate limit exceeded. Retrying in {retry_after} seconds.")
-        time.sleep(retry_after)
-        logging.info(">> Retrying...")
-        history.pop() # remove prompt from history because it will be added again
-        content = callOpenAI(prompt, history, appendResponse=False)
+            content = response['choices'][0]['message']['content']
+            break  # If successful, break out of the loop
+        except openai.error.RateLimitError as e:
+            retry_count += 1
+            retry_after = get_retry_after(e) * (2 ** retry_count)
+            logging.info(f">> Rate limit exceeded. Retrying in {retry_after} seconds.")
+            time.sleep(retry_after)
+            logging.info(">> Retrying...")
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            raise e
+    if retry_count >= max_retries:
+        raise Exception("Maximum retry attempts reached")
 
     if appendResponse:
         history.append({"role": "assistant", "content": content})
