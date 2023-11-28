@@ -1,6 +1,8 @@
 import config
 
+# Example of updating the title prompt for clarity and context
 def title(title_string):
+    # Ensure the prompt is clear and instructive
     return (f'''
 I want you to write a book with title "{title_string}".
 Translate the title to YourLanguage if necessary, normalize it so that it looks like a real book title,
@@ -42,15 +44,15 @@ Do not add any notes after the table of contents.
 Output in JSON format, with the following format:
 (replace the placeholders in double curely braces with the actual values):
 
-{{
+{
     "chapters": [
-        {{  "number":{{chapter number}},
+        {  "number":{{chapter number}},
             "title":"{{chapter title}}",
             "sections": [
-                {{"number":{{section number}},"title":"{{section title}}"}},
-                {{"number":{{section number}},"title":"{{section title}}"}}
+                {"number":{{section number}},"title":"{{section title}}"},
+                {"number":{{section number}},"title":"{{section title}}"}
             ]
-        }}
+        }
         {{rest of chapters with sections in the same format}}
     ]
 }}
