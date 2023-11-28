@@ -17,11 +17,7 @@ def create_book_frontpage(book_base_dir, book):
     summary = book['summary'] or f'Summary of "{title}" will be here'
 
     frontpage_file = f"{book_base_dir}/README.md"
-    # if os.path.exists(frontpage_file):
-    #     logging.info(f"File {frontpage_file} already exists. Skipping...")
-    #     return
 
-    # Create a markdown with book title and toc with links for each chapter and section
     with open(frontpage_file, "w") as f:
         f.write(f"# {title}\n\n")
         f.write(f"{summary}\n\n")
@@ -47,28 +43,29 @@ def create_chapter_file(book_base_dir, book, chapter):
     title = book['title']
     chapter_number = chapter['number']
     chapter_title = chapter['title']
-    chapter_file = chapter['file']
+    chapter_file_path = f"{book_base_dir}/{chapter['file']}"
 
     chapter_content = chapter.get('content') or f'Chapter "{chapter_title}" content will be here'
 
-    with open(f"{book_base_dir}/{chapter_file}", "w") as f:
-        f.write(f"# {title}\n\n")
-        f.write(f"## {chapter_number}. {chapter_title}\n\n")
-        f.write(chapter_content)
-        f.write("\n\n")
-
-        for section in chapter['sections']:
-            section_number = section['number']
-            section_title = section['title']
-            # section_slug = slugify.slugify(section_title)
-            section_content = section.get('content') or f'Section "{section_title}" content will be here'
-
-            f.write(f"### {chapter_number}.{section_number}. {section_title}\n\n")
-            f.write(section_content)
+    try:
+        with open(chapter_file_path, "w") as f:
+            f.write(f"# {title}\n\n")
+            f.write(f"## {chapter_number}. {chapter_title}\n\n")
+            f.write(chapter_content)
             f.write("\n\n")
 
+            for section in chapter['sections']:
+                section_number = section['number']
+                section_title = section['title']
+                section_content = section.get('content') or f'Section "{section_title}" content will be here'
+
+                f.write(f"### {chapter_number}.{section_number}. {section_title}\n\n")
+                f.write(section_content)
+                f.write("\n\n")
+    except IOError as e:
+        raise IOError(f"Failed to create chapter file: {chapter_file_path}") from e
+
 def create_chapters(book_base_dir, book):
-    # Create a markdown for each chapter
     for chapter in book['toc']["chapters"]:
         create_chapter_file(book_base_dir, book, chapter)
 
